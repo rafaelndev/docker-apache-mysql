@@ -1,0 +1,29 @@
+version: '2'
+
+services:
+  web:
+    dns: ["8.8.8.8"]
+    build: .
+    ports:
+    - "8080:80"
+    - "9090:9000"
+    - "3306:3306"
+    volumes:
+    - ./www:/var/www/
+    - ./config/sites-enabled.conf:/etc/apache2/sites-enabled/000-default.conf
+    - ./config/apache2.conf:/etc/apache2/apache2.conf
+    - ./config/php.ini:/etc/php5/apache2/php.ini
+    - ./moodledata:/opt/moodle/moodledata
+
+  mysql:
+    network_mode: service:web
+    depends_on:
+      - web
+    image: mysql:5.6
+    volumes:
+      - ./mysql-data/:/var/lib/mysql/
+      - ./config/mysql-conf.d/:/etc/mysql/conf.d
+    environment:
+      - MYSQL_USERNAME=root
+      - MYSQL_ALLOW_EMPTY_PASSWORD=true
+      - MYSQL_DATABASE=test
