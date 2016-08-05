@@ -2,18 +2,20 @@ version: '2'
 
 services:
   web:
-    dns: ["8.8.8.8"]
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile-web
+    network_mode: "host"
     ports:
-    - "8080:80"
-    - "9090:9000"
-    - "3306:3306"
+      - "80:80"
+      - "10000:10000"
+      - "3306:3306"
     volumes:
-    - ./www:/var/www/
-    - ./config/sites-enabled.conf:/etc/apache2/sites-enabled/000-default.conf
-    - ./config/apache2.conf:/etc/apache2/apache2.conf
-    - ./config/php.ini:/etc/php5/apache2/php.ini
-    - ./moodledata:/opt/moodle/moodledata
+      - ./www:/var/www/
+      - ./config/sites-enabled.conf:/etc/apache2/sites-enabled/000-default.conf
+      - ./config/apache2.conf:/etc/apache2/apache2.conf
+      - ./config/php.ini:/etc/php5/apache2/php.ini
+      - ./moodledata:/opt/moodle/moodledata
 
   mysql:
     network_mode: service:web
@@ -27,3 +29,15 @@ services:
       - MYSQL_USERNAME=root
       - MYSQL_ALLOW_EMPTY_PASSWORD=true
       - MYSQL_DATABASE=test
+
+  dns_server:
+    build:
+      context: .
+      dockerfile: Dockerfile-dnsmasq
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./config/dnsmasq.conf:/etc/dnsmasq.conf
